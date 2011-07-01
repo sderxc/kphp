@@ -1,14 +1,25 @@
 <?php
+/**
+ * A MySQL DBO interface
+ */
 class DBO_MySQL extends DBO {
   
   protected $_link;
 
+  /**
+   * Connects to a database
+   */
   public function __construct(){
     $this->connect();
   }
 
+  /**
+   * Connects to a DB
+   * TODO: deprecate this, pick config from an app instance possibly
+   * @return boolean Have we connected?
+   */
   private function connect(){
-    $this->_link = mysql_connect(HOST, USER, PASS); // долэон храниться в конфиге
+    $this->_link = mysql_connect(HOST, USER, PASS);
     if (mysql_select_db(BASE)){
       return True;
     } else {
@@ -16,6 +27,11 @@ class DBO_MySQL extends DBO {
     }
   }
   
+  /**
+   * Runs a given query
+   * @param string $query
+   * @return resource MySQL resource
+   */
   public function query($query){
     if (!$this->_link) {
       $this->connect();
@@ -25,13 +41,14 @@ class DBO_MySQL extends DBO {
       mysql_query($query, $this->_link);
       return mysql_insert_id();
       }
-    //print $query."<br/>\n";
     return @mysql_query($query, $this->_link);
   }
   
   /**
-   * Возвращает множество ассоциативных массивов внутри массива 
-   **/
+   * Returns assoc arrays inside an array
+   * @param Resource $data MySQL resource
+   * @return array 
+   */
   private function object($data){
     $ret = array();
     if ($data){
@@ -41,7 +58,14 @@ class DBO_MySQL extends DBO {
       return $ret;
     }// else throw new Exception;
   }
-   
+  
+  /**
+   * Runs an insert query against a given table
+   * TODO: refactor this like in tz1
+   * @param string $tableName
+   * @param array $fields
+   * @return Resource|boolean
+   */
   public function insert($tableName, $fields){
     if (is_array($fields)){
       $c = count($fields);
@@ -63,6 +87,12 @@ class DBO_MySQL extends DBO {
     }
   }
   
+  /**
+   *
+   * @param string $tableName
+   * @param array $fields
+   * @return Resource|boolean 
+   */
   private function update($tableName, $fields){
   /**
    * Обновляет строку таблицы
@@ -86,6 +116,12 @@ class DBO_MySQL extends DBO {
     }  
   }
   
+  /**
+   * Updates or creates a new DB table row depending on having an ID in field list
+   * @param string $tableName
+   * @param array $fields
+   * @return integer 
+   */
   public function put($tableName, $fields){
     //print_r($fields);
     if (array_key_exists('id', $fields)){
@@ -123,6 +159,12 @@ class DBO_MySQL extends DBO {
     }
   }
   
+  /**
+   * Removes a DB table row by a given criteria
+   * @param string $tableName
+   * @param array $fields
+   * @return type 
+   */
   public function drop($tableName, $fields){
     $qfields = '';
     $qwhere = '';
@@ -141,6 +183,12 @@ class DBO_MySQL extends DBO {
     return $this->query($q);
   }
   
+  /**
+   * Returns count of rows matching given criteria
+   * @param string $tableName
+   * @param array $fields
+   * @return integer 
+   */
   public function count($tableName, $fields = False){
     $ret = $this->_select($tableName, $fields, True);
     return $ret['COUNT(*)'];
@@ -163,6 +211,11 @@ class DBO_MySQL extends DBO {
 	  return $this->object($this->query($query));
 	}
   
+  /**
+   * Describes a given table
+   * @param string $tableName
+   * @return array 
+   */
   public function describe($tableName){
     $query = "DESCRIBE $tableName";
     $fields = $this->object($this->query($query));

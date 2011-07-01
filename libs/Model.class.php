@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * A generic model class
+ */
 class Model {
   var $name;
   var $tableName;
@@ -7,11 +9,17 @@ class Model {
   
   var $hasAndBelongsToMany;
   
+  /**
+   * Creates a model instance
+   * If given an ID, should really be ActiveRecord-like
+   * Can use a different DBO than the whole app
+   * @param integer $id 
+   * @param DBO $dbo 
+   */
   public function __construct($id=False, $dbo=False){
     $this->name = get_class($this);
     $this->tableName = get_class($this).'s';
     $this->dbo = new DBO_MySQL();
-    //print_r ($this->dbo->describe($this->tableName));
     $dboFields = $this->dbo->describe($this->tableName);
     $i = 0;
     foreach ($dboFields as $name=>$type) {
